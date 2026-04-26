@@ -45,9 +45,9 @@ const config = gesel.newConfig(
     }
 );
 
-/*****************************************************/
+const precomputed = { "species ": null, "chosen_genes": null };
 
-const cached_collections = { "chosen": null };
+/*****************************************************/
 
 async function checkCollections() {
     const all_species = document.getElementById("species-list").childNodes;
@@ -59,7 +59,7 @@ async function checkCollections() {
         }
     }
 
-    if (chosen_species == null || cached_collections.chosen == chosen_species) {
+    if (chosen_species == null || precomputed.species == chosen_species) {
         return true;
     }
 
@@ -86,7 +86,7 @@ async function checkCollections() {
 
     const coldiv = document.getElementById("collection-availability");
     coldiv.replaceChildren(...collection_elements);
-    cached_collections.chosen = chosen_species;
+    precomputed.species = chosen_species;
 
     return true;
 }
@@ -94,4 +94,57 @@ async function checkCollections() {
 checkCollections();
 
 window.checkCollections = checkCollections;
+
+/*****************************************************/
+
+async function sanitizeGenes() { 
+    const gene_el = document.getElementById("filter-genes");
+    const gene_text = gene_el.value;
+    if (gene_text == "") {
+        precomputed.genes = null;
+        return;
+    }
+
+    var lines = gene_text.split("\n");
+    let indices = [];
+    let queries = [];
+    for (let i = 0; i < lines.length; i++) {
+        var x = lines[i];
+        x = x.replace(/#.*/, "");
+        x = x.trim();
+        if (x !== "") {
+            indices.push(i);
+            queries.push(x);
+        }
+    }
+
+    if (queries.length == 0) {
+        precomputed.genes = null;
+        return;
+    }
+
+    var gene_info = await gesel.searchGenes(precomputed.species, queries, config);
+    let genes = [];
+    const failmsg = " # ❌ no matching gene found 😢"
+
+    for (let i = 0; i < gene_info.length; i++) {
+        let x = gene_info[i];
+        if (x.length === 0) {
+            const curline = lines[indices[i]];
+            if (!curline.endsWith(failmsg)) {
+                lines[indices[i]] += failmsg;
+            }
+        } else {
+            for (const y of x) {
+                genes.push(y);
+            }
+        }
+    }
+
+    gene_el.value = lines.join("\n");
+    precomputed.genes = genes;
+    console.log(genes);
+}
+
+window.sanitizeGenes = sanitizeGenes;
 

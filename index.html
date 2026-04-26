@@ -20,6 +20,8 @@
     addEventListener("change", ev => {
         if (ev.target.name == "species" && ev.target.type == "radio") {
             checkCollections();
+        } else if (ev.target.id == "filter-genes") {
+            sanitizeGenes();
         }
     });
     </script>
