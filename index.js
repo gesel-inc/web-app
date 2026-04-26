@@ -30,7 +30,7 @@ const config = gesel.newConfig(
         const everything = [];
         // GitHub doesn't support multi-range requests, but if it did, we could use that instead.
         for (var i = 0; i < start.length; i++) {
-            const resp = fetch(full_url, { headers: { Range: "bytes=" + String(start[i]) + "-" + String(end[i] - 1) } })
+            const resp = fetch(address, { headers: { Range: "bytes=" + String(start[i]) + "-" + String(end[i] - 1) } })
                 .then(
                     res => {
                         if (!res.ok) {
@@ -45,7 +45,7 @@ const config = gesel.newConfig(
     }
 );
 
-const precomputed = { "species ": null, "chosen_genes": null };
+const precomputed = { "species ": null, "genes": null };
 
 /*****************************************************/
 
@@ -143,8 +143,146 @@ async function sanitizeGenes() {
 
     gene_el.value = lines.join("\n");
     precomputed.genes = genes;
-    console.log(genes);
 }
 
 window.sanitizeGenes = sanitizeGenes;
 
+/*****************************************************/
+
+async function formatTable(species, results, start, end) {
+    const tab = document.createElement("table");
+    const actual_start = Math.min(start, results.length);
+    const actual_end = Math.min(end, results.length);
+
+    const header = document.createElement("tr");
+    const colnames = ["Name", "Description", "Collection", "Size", "Overlap", "p-value"];
+    for (const c of colnames) {
+        const element = document.createElement("th");
+        element.textContent = c;
+        header.appendChild(element);
+    }
+    tab.appendChild(header);
+
+    const sinfo = await gesel.fetchAllSets(species, config);
+    const cinfo = await gesel.fetchAllCollections(species, config);
+
+    for (var i = actual_start; i < actual_end; i++) {
+        const currow = document.createElement("tr");
+        const curres = results[i];
+        const set = sinfo[curres.id];
+
+        currow.appendChild((() => {
+            const element = document.createElement("td");
+            element.textContent = set.name;
+            return element;
+        })());
+
+        currow.appendChild((() => {
+            const element = document.createElement("td");
+            element.textContent = set.description;
+            return element;
+        })());
+
+        currow.appendChild((() => {
+            const element = document.createElement("td");
+            element.textContent = cinfo[set.collection].title;
+            return element;
+        })());
+
+        currow.appendChild((() => {
+            const element = document.createElement("td");
+            element.textContent = set.size;
+            return element;
+        })());
+
+        if ("count" in curres) {
+            currow.appendChild((() => {
+                const element = document.createElement("td");
+                element.textContent = curres.count;
+                return element;
+            })());
+
+            currow.appendChild((() => {
+                const element = document.createElement("td");
+                element.textContent = curres.pvalue;
+                return element;
+            })());
+        } else {
+            currow.appendChild((() => {
+                const element = document.createElement("td");
+                element.textContent = "n/a";
+                return element;
+            })());
+
+            currow.appendChild((() => {
+                const element = document.createElement("td");
+                element.textContent = "n/a";
+                return element;
+            })());
+        }
+
+        tab.appendChild(currow);
+    }
+
+    document.getElementById("tab").replaceChildren(tab);
+}
+
+async function performSearch() { 
+    const species = precomputed.species;
+
+    let res = null;
+    if (precomputed.genes !== null) {
+        res = await gesel.findOverlappingSets(species, precomputed.genes, config, { includeSize: true });
+        let ngenes = await gesel.effectiveNumberOfGenes(species, config);
+        res.sort((left, right) => left.pvalue - right.pvalue);
+    }
+
+    const txt_filter = document.getElementById("filter-text").value;
+    if (txt_filter.match(/[\w]+/)) {
+        let desc_matches = await gesel.searchSetText(species, txt_filter, config);
+        if (res == null) {
+            let sizes = await gesel.fetchSetSizes(species, config);
+            res = [];
+            for (const i of desc_matches) {
+                res.push({ id: i, size: sizes[i] });
+            }
+        } else {
+            let replacement = [];
+            let allowed = new Set(desc_matches);
+            for (const x of res) {
+                if (allowed.has(x.id)) {
+                    replacement.push(x);
+                }
+            }
+            res = replacement;
+        }
+    }
+
+    const collection_nodes = document.getElementById("collection-availability").childNodes;
+    const collections_to_use = new Set;
+    let needs_filter = false;
+    for (const child of collection_nodes) {
+        if (child.nodeName == "INPUT" && child.name == "filter-collections") {
+            if (child.checked) {
+                collections_to_use.add(Number(child.value));
+            } else {
+                needs_filter = true;
+            }
+        }
+    }
+
+    if (needs_filter) {
+        const sinfo = await gesel.fetchAllSets(species, config);
+        res = res.filter(x => collections_to_use.has(sinfo[x.id].collection));
+    }
+
+    if (res === null) {
+        // Probably should emit an alert or something if no search filters are set.
+        res = [];
+    }
+
+    formatTable(species, res, 0, 50);
+    return false;
+}
+
+window.performSearch = performSearch;
