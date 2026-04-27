@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#000000" />
+    <meta
+      name="description"
+      content="Search for gene sets with gesel"
+    />
+    <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
+    <title>Gesel gene set search</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+
+  <body>
+    <script type="module" src="index.js"></script>
+    <script type="module">
+    addEventListener("change", async ev => {
+        console.log(ev);
+        if (ev.target.name == "species" && ev.target.type == "radio") {
+            const button = document.getElementById("search");
+            const is_disabled = button.getAttribute("disabled");
+            if (!is_disabled) {
+                button.setAttribute("disabled", true);
+            }
+
+            const species = getSpecies();
+            const previous = setSpecies(species);
+            if (species != previous) {
+                await updateCollections();
+                await sanitizeGenes();
+            }
+
+            if (!is_disabled) {
+                button.removeAttribute("disabled");
+            }
+
+        } else if (ev.target.id == "filter-genes") {
+            const button = document.getElementById("search");
+            const is_disabled = button.getAttribute("disabled");
+            if (!is_disabled) {
+                button.setAttribute("disabled", true);
+            }
+
+            await sanitizeGenes();
+
+            if (!is_disabled) {
+                button.removeAttribute("disabled");
+            }
+
+        } else if (ev.target.name.startsWith("gene-id-choice-") && ev.target.type == "radio") {
+            const index = ev.target.id.replace("gene-id-choice-", "").replace(/-.*/, "");
+            await populateGeneLists(Number(index));
+        }
+    });
+    </script>
+    <h1>Bioconductor gene set search</h1>
+
+  <div class="row">
+    <div class="column" style="width:10%">
+      <fieldset id="species-list">
+        <legend>Choose a species</legend>
+        <input type="radio" id="human" name="species" value="9606" checked>
+        <label for="human">Human</label>
+        <br/>
+        <input type="radio" id="mouse" name="species" value="10090">
+        <label for="mouse">Mouse</label>
+        <br/>
+        <input type="radio" id="fly" name="species" value="7227">
+        <label for="fly">Fly</label>
+        <br/>
+        <input type="radio" id="rat" name="species" value="10116">
+        <label for="rat">Rat</label>
+        <br/>
+        <input type="radio" id="worm" name="species" value="6239">
+        <label for="worm">Worm</label>
+        <br/>
+        <input type="radio" id="zebrafish" name="species" value="7955">
+        <label for="zebrafish">Zebrafish</label>
+        <br/>
+        <input type="radio" id="chimp" name="species" value="9598">
+        <label for="chimp">Chimp</label>
+        <p>
+          <em>
+            Pretty self-explanatory.
+          </em>
+        </p>
+      </fieldset>
+    </div>
+    <div class="column" style="width:30%">
+      <fieldset>
+        <legend>List some genes of interest</legend>
+        <textarea id="filter-genes" placeholder="SNAP25&#10;Neurod6&#10;ATOH1&#10;ENSG00000142208" style="width: 100%; height: 200px"></textarea>
+        <p>
+          <em>
+            Enter a list of genes (Ensembl or Entrez IDs or symbols, one per line, text after <code>#</code> is ignored) and we'll find any gene sets with overlaps.
+            Sets will be ranked by the enrichment p-value.
+          </em>
+        </p>
+      </fieldset>
+    </div>
+    <div class="column", style="width:30%">
+      <fieldset>
+        <legend>Search gene set names/descriptions</legend>
+        <textarea id="filter-text" placeholder="pancrea* cancer" style="width: 100%; height: 200px"></textarea>
+        <p>
+          <em>
+            Restrict the search to sets with names or descriptions containing all search terms.
+            <code>*</code> and <code>?</code> wildcards are supported.
+          </em>
+        </p>
+      </fieldset>
+    </div>
+    <div class="column", style="width:30%">
+      <fieldset>
+        <legend>Restrict gene set collections</legend>
+        <div id="collection-availability" style="height:200px; overflow-y:auto"></div>
+        <p>
+          <em>
+            Limit the search to particular gene set collections.
+          </em>
+        </p>
+      </fieldset>
+    </div>
+  </div>
+  <button id="search" onclick="performSearch()">Search for gene sets</button>
+  <hr/>
+  <div id="tab">
+  </div>
+  <div id="pages">
+  </div>
+  </body>
+</html>
