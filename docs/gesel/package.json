@@ -1,0 +1,30 @@
+{
+  "name": "gesel",
+  "description": "Client-side search for gene set selections",
+  "version": "0.4.1",
+  "type": "module",
+  "main": "src/index.js",
+  "license": "MIT",
+  "author": {
+    "name": "Aaron Lun",
+    "email": "infinite.monkeys.with.keyboards@gmail.com"
+  },
+  "scripts": {
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand --testTimeout=1000000",
+    "jsdoc": "npx jsdoc src README.md -d docs/built -c docs/jsdoc.config.json"
+  },
+  "devDependencies": {
+    "docdash": "^2.0.1",
+    "jest": "^30.3.0",
+    "jsdoc": "^4.0.5"
+  },
+  "bugs": "https://github.com/gesel-inc/gesel.js/issues",
+  "keywords": [
+    "bioinformatics"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/gesel-inc/gesel.js"
+  },
+  "homepage": "https://gesel-inc.github.io/gesel.js"
+}
