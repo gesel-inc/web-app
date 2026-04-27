@@ -45,24 +45,28 @@ const config = gesel.newConfig(
     }
 );
 
-const precomputed = { "species ": null, "genes": null };
+const precomputed = { "species": null, "genes": null, "raw_genes": null };
 
 /*****************************************************/
 
-async function checkCollections() {
+function getSpecies() {
     const all_species = document.getElementById("species-list").childNodes;
-    let chosen_species = null; 
     for (const node of all_species) {
         if (node.nodeName == "INPUT" && node.getAttribute("name") == "species" && node.checked) {
-            chosen_species = node.getAttribute("value");
-            break;
+            return node.getAttribute("value");
         }
     }
+    return null;
+}
 
-    if (chosen_species == null || precomputed.species == chosen_species) {
-        return true;
-    }
+function setSpecies(species) {
+    const previous = precomputed.species;
+    precomputed.species = species;
+    return previous;
+}
 
+async function updateCollections() {
+    const chosen_species = precomputed.species;
     const all_collections = await gesel.fetchAllCollections(chosen_species, config);
 
     let collection_elements = [];
@@ -91,15 +95,21 @@ async function checkCollections() {
     return true;
 }
 
-checkCollections();
+setSpecies(getSpecies());
+updateCollections();
 
-window.checkCollections = checkCollections;
+window.getSpecies = getSpecies;
+window.setSpecies = setSpecies;
+window.updateCollections = updateCollections;
 
 /*****************************************************/
 
 async function sanitizeGenes() { 
     const gene_el = document.getElementById("filter-genes");
     const gene_text = gene_el.value;
+    if (gene_text == precomputed.raw_genes) {
+        return;
+    }
     if (gene_text == "") {
         precomputed.genes = null;
         return;
@@ -230,6 +240,7 @@ async function formatTable(species, results, start, end) {
 async function performSearch() { 
     const species = precomputed.species;
 
+    await sanitizeGenes(); // just in case someone clicks on search before the event listener fired.
     let res = null;
     if (precomputed.genes !== null) {
         res = await gesel.findOverlappingSets(species, precomputed.genes, config, { includeSize: true });

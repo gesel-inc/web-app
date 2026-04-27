@@ -19,7 +19,22 @@
     <script type="module">
     addEventListener("change", ev => {
         if (ev.target.name == "species" && ev.target.type == "radio") {
-            checkCollections();
+            const button = document.getElementById("search");
+            const is_disabled = button.getAttribute("disabled");
+            if (!is_disabled) {
+                button.setAttribute("disabled", true);
+            }
+
+            const species = getSpecies();
+            const previous = setSpecies(species);
+            if (species != previous) {
+                updateCollections();
+                sanitizeGenes();
+            }
+
+            if (!is_disabled) {
+                button.removeAttribute("disabled");
+            }
         } else if (ev.target.id == "filter-genes") {
             sanitizeGenes();
         }
@@ -89,7 +104,7 @@
       </fieldset>
     </div>
   </div>
-  <input type="button" value="search" onclick="performSearch()">
+  <button id="search" onclick="performSearch()">Search for gene sets</button>
   <hr/>
   <div id="tab">
   </div>
