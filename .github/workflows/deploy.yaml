@@ -23,12 +23,11 @@ jobs:
         key: modules-${{ hashFiles('**/package.json') }}
 
     - name: Install dependencies
-      run: npm i
+      run: git clone --depth=1 https://github.com/gesel-inc/gesel.js gesel
 
     - name: Remove unneeded files
       run: |
         rm .gitignore
-        rm package.json package-lock.json
         rm README.md
         rm LICENSE
 

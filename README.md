@@ -5,7 +5,7 @@
 First, we obtain the **gesel** source code:
 
 ```bash
-npm i
+git clone --depth=1 https://github.com/gesel-inc/gesel.js gesel
 ```
 
 The browser Cache API requires HTTPS, so we need to set up some certificates:

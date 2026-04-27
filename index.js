@@ -1,4 +1,4 @@
-import * as gesel from "./node_modules/gesel/src/index.js";
+import * as gesel from "./gesel/src/index.js";
 
 const proxy = "https://cors-proxy.aaron-lun.workers.dev";
 const ref_url = "https://github.com/gesel-inc/feedstock/releases/download/indices-v0.3.0";
