@@ -176,7 +176,7 @@ async function formatTable(species, results, start, end) {
     const actual_end = Math.min(end, results.length);
 
     const header = document.createElement("tr");
-    const colnames = ["Name", "Description", "Collection", "Size", "Overlap", "p-value"];
+    const colnames = ["Name", "Description", "Collection", "Size", "Overlap", "p-value", ""];
     for (const c of colnames) {
         const element = document.createElement("th");
         element.textContent = c;
@@ -189,6 +189,7 @@ async function formatTable(species, results, start, end) {
 
     for (var i = actual_start; i < actual_end; i++) {
         const currow = document.createElement("tr");
+        currow.id = "result-row-" + String(i);
         const curres = results[i];
         const set = sinfo[curres.id];
 
@@ -241,6 +242,16 @@ async function formatTable(species, results, start, end) {
                 return element;
             })());
         }
+
+        currow.appendChild((() => {
+            const element = document.createElement("td");
+            const button = document.createElement("button");
+            button.id = "show-details-" + String(i);
+            button.textContent = "show details";
+            button.setAttribute("onclick", "showGeneSetDetails(" + String(i) + ");");
+            element.appendChild(button);
+            return element;
+        })());
 
         tab.appendChild(currow);
     }
@@ -388,3 +399,133 @@ async function updatePage(new_page) {
 
 window.performSearch = performSearch;
 window.updatePage = updatePage;
+
+/*****************************************************/
+
+async function showGeneSetDetails(index) {
+    const row = document.createElement("tr");
+    row.id = "result-row-expanded-" + String(index);
+    const entry = document.createElement("td");
+    entry.setAttribute("colspan", 7);
+
+    const species = precomputed.species;
+    const res = precomputed.results[index];
+    const sinfo = await gesel.fetchAllSets(species, config);
+    const chosen = sinfo[res.id];
+    const cinfo = await gesel.fetchAllCollections(species, config);
+    const curcolle = cinfo[chosen.collection];
+
+    // Collection details that we don't show in the table.
+    entry.appendChild((function() {
+        const pp = document.createElement("p");
+        const st = document.createElement("strong");
+        st.textContent = "Collection description:";
+        pp.appendChild(st);
+        pp.appendChild(document.createTextNode(curcolle.description));
+        return pp;
+    })());
+
+    entry.appendChild((function() {
+        const pp = document.createElement("p");
+        const st = document.createElement("strong");
+        st.textContent = "Collection contributor:";
+        pp.appendChild(st);
+        pp.appendChild(document.createTextNode(curcolle.maintainer));
+        return pp;
+    })());
+
+    entry.appendChild((function() {
+        const pp = document.createElement("p");
+        const st = document.createElement("strong");
+        st.textContent = "Collection source:";
+        pp.appendChild(st);
+        pp.appendChild(document.createTextNode(curcolle.source));
+        return pp;
+    })());
+
+    // Adding genes.
+    const membership = await gesel.fetchGenesForSomeSets(species, [res.id], config);
+    const in_set = new Set(precomputed.genes);
+    const inside = [];
+    const outside = [];
+
+    for (const x of membership[0]) {
+        if (in_set.has(x)) {
+            inside.push(x);
+        } else {
+            outside.push(x);
+        }
+    }
+
+    const genes = await gesel.fetchAllGenes(species, config);
+    for (const [type, ids] of genes.entries()) {
+        const deets = document.createElement("details");
+        if (type == "symbol") {
+            deets.setAttribute("open", true);
+        }
+        const summ = document.createElement("summary");
+        summ.textContent = type;
+        deets.appendChild(summ);
+
+        deets.appendChild((function() {
+            const pp = document.createElement("p");
+            const st = document.createElement("strong");
+            st.textContent = "Overlapping genes:";
+            pp.appendChild(st);
+
+            const accumulated = [];
+            for (const i of inside) {
+                const curi = ids[i];
+                let entry = curi[0];
+                if (curi.length > 1) {
+                    entry += " (" + curi.slice(1).join(", ") + ")";
+                }
+                accumulated.push(curi);
+            }
+
+            pp.appendChild(document.createTextNode(accumulated.join(", ")));
+            return pp;
+        })());
+
+        deets.appendChild((function() {
+            const pp = document.createElement("p");
+            const st = document.createElement("strong");
+            st.textContent = "Other genes:";
+            pp.appendChild(st);
+
+            const accumulated = [];
+            for (const i of outside) {
+                const curi = ids[i];
+                let entry = curi[0];
+                if (curi.length > 1) {
+                    entry += " (" + curi.slice(1).join(", ") + ")";
+                }
+                accumulated.push(curi);
+            }
+
+            pp.appendChild(document.createTextNode(accumulated.join(", ")));
+            return pp;
+        })());
+
+        entry.appendChild(deets);
+    }
+
+    row.appendChild(entry);
+    document.getElementById("result-row-" + String(index)).after(row);
+
+    const butt = document.getElementById("show-details-" + String(index));
+    butt.textContent = "Hide details";
+    butt.setAttribute("onclick", "hideGeneSetDetails(" + String(index) + ");");
+
+    return false;
+} 
+
+function hideGeneSetDetails(index) {
+    document.getElementById("result-row-expanded-" + String(index)).remove();
+    const butt = document.getElementById("show-details-" + String(index));
+    butt.textContent = "Show details";
+    butt.setAttribute("onclick", "showGeneSetDetails(" + String(index) + ");");
+}
+
+window.showGeneSetDetails = showGeneSetDetails;
+window.hideGeneSetDetails = hideGeneSetDetails;
