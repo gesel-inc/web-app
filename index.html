@@ -66,12 +66,17 @@
         <br/>
         <input type="radio" id="chimp" name="species" value="9598">
         <label for="chimp">Chimp</label>
+        <p>
+          <em>
+            Pretty self-explanatory.
+          </em>
+        </p>
       </fieldset>
     </div>
     <div class="column" style="width:30%">
       <fieldset>
         <legend>List some genes of interest</legend>
-        <textarea id="filter-genes" placeholder="SNAP25&#10;Neurod6&#10;ATOH1&#10;ENSG00000142208" style="width: 100%" rows="20"></textarea>
+        <textarea id="filter-genes" placeholder="SNAP25&#10;Neurod6&#10;ATOH1&#10;ENSG00000142208" style="width: 100%; height: 200px"></textarea>
         <p>
           <em>
             Enter a list of genes (Ensembl or Entrez IDs or symbols, one per line, text after <code>#</code> is ignored) and we'll find any gene sets with overlaps.
@@ -83,7 +88,7 @@
     <div class="column", style="width:30%">
       <fieldset>
         <legend>Search gene set names/descriptions</legend>
-        <textarea id="filter-text" placeholder="pancrea* cancer" style="width: 100%" rows="5"></textarea>
+        <textarea id="filter-text" placeholder="pancrea* cancer" style="width: 100%; height: 200px"></textarea>
         <p>
           <em>
             Restrict the search to sets with names or descriptions containing all search terms.
@@ -95,7 +100,7 @@
     <div class="column", style="width:30%">
       <fieldset>
         <legend>Restrict gene set collections</legend>
-        <div id="collection-availability"></div>
+        <div id="collection-availability" style="height:200px; overflow-y:auto"></div>
         <p>
           <em>
             Limit the search to particular gene set collections.
@@ -110,6 +115,5 @@
   </div>
   <div id="pages">
   </div>
-
   </body>
 </html>
