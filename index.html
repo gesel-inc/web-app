@@ -18,6 +18,7 @@
     <script type="module" src="index.js"></script>
     <script type="module">
     addEventListener("change", async ev => {
+        console.log(ev);
         if (ev.target.name == "species" && ev.target.type == "radio") {
             const button = document.getElementById("search");
             const is_disabled = button.getAttribute("disabled");
@@ -35,6 +36,7 @@
             if (!is_disabled) {
                 button.removeAttribute("disabled");
             }
+
         } else if (ev.target.id == "filter-genes") {
             const button = document.getElementById("search");
             const is_disabled = button.getAttribute("disabled");
@@ -47,6 +49,10 @@
             if (!is_disabled) {
                 button.removeAttribute("disabled");
             }
+
+        } else if (ev.target.name.startsWith("gene-id-choice-") && ev.target.type == "radio") {
+            const index = ev.target.id.replace("gene-id-choice-", "").replace(/-.*/, "");
+            await populateGeneLists(Number(index));
         }
     });
     </script>

@@ -457,59 +457,47 @@ async function showGeneSetDetails(index) {
         }
     }
 
-    const genes = await gesel.fetchAllGenes(species, config);
-    for (const [type, ids] of genes.entries()) {
-        const deets = document.createElement("details");
-        if (type == "symbol") {
-            deets.setAttribute("open", true);
-        }
-        const summ = document.createElement("summary");
-        summ.textContent = type;
-        deets.appendChild(summ);
+    res.overlapping_genes = inside;
+    res.other_genes = outside;
 
-        deets.appendChild((function() {
-            const pp = document.createElement("p");
-            const st = document.createElement("strong");
-            st.textContent = "Overlapping genes:";
-            pp.appendChild(st);
+    const choice_id = "gene-id-choice-" + String(index);
+    const wrapper = document.createElement("div");
+    wrapper.id = choice_id;
+    wrapper.appendChild(document.createTextNode("Gene identifier type: "));
 
-            const accumulated = [];
-            for (const i of inside) {
-                const curi = ids[i];
-                let entry = curi[0];
-                if (curi.length > 1) {
-                    entry += " (" + curi.slice(1).join(", ") + ")";
-                }
-                accumulated.push(curi);
+    for (const types of [["symbol", "symbol"], ["ensembl", "Ensembl"], ["entrez", "Entrez"]]) {
+        const cur_choice_id = choice_id + "-" + types[0];
+        wrapper.appendChild((function() {
+            const choice = document.createElement("input");
+            choice.type = "radio";
+            choice.id = cur_choice_id;
+            choice.name = choice_id;
+            choice.value = types[0];
+            if (types[0] == "symbol") {
+                choice.setAttribute("checked", true);
             }
-
-            pp.appendChild(document.createTextNode(accumulated.join(", ")));
-            return pp;
+            return choice
         })());
 
-        deets.appendChild((function() {
-            const pp = document.createElement("p");
-            const st = document.createElement("strong");
-            st.textContent = "Other genes:";
-            pp.appendChild(st);
-
-            const accumulated = [];
-            for (const i of outside) {
-                const curi = ids[i];
-                let entry = curi[0];
-                if (curi.length > 1) {
-                    entry += " (" + curi.slice(1).join(", ") + ")";
-                }
-                accumulated.push(curi);
-            }
-
-            pp.appendChild(document.createTextNode(accumulated.join(", ")));
-            return pp;
+        wrapper.appendChild((function() {
+            const lab = document.createElement("label");
+            lab.setAttribute("for", cur_choice_id);
+            lab.textContent = types[1];
+            return lab; 
         })());
-
-        entry.appendChild(deets);
     }
 
+    const inside_pp = document.createElement("p");
+    inside_pp.id = "overlap-genes-" + String(index);
+    wrapper.appendChild(inside_pp);
+
+    const outside_pp = document.createElement("p");
+    outside_pp.id = "other-genes-" + String(index);
+    wrapper.appendChild(outside_pp);
+
+    await populate_gene_lists(species, "symbol", inside_pp, inside, outside_pp, outside);
+
+    entry.appendChild(wrapper);
     row.appendChild(entry);
     document.getElementById("result-row-" + String(index)).after(row);
 
@@ -520,6 +508,61 @@ async function showGeneSetDetails(index) {
     return false;
 } 
 
+async function populate_gene_lists(species, type, overlapping_node, overlapping_genes, other_node, other_genes) {
+    const ids = (await gesel.fetchAllGenes(species, config, { types: [type] })).get(type);
+
+    {
+        const accumulated = [];
+        for (const i of overlapping_genes) {
+            const curi = ids[i];
+            let entry = curi[0];
+            if (curi.length > 1) {
+                entry += " (" + curi.slice(1).join(", ") + ")";
+            }
+            accumulated.push(curi);
+        }
+
+        const st = document.createElement("strong");
+        st.textContent = "Overlapping genes:";
+        overlapping_node.replaceChildren(st, document.createTextNode(accumulated.join(", ")));
+    }
+
+    {
+        const accumulated = [];
+        for (const i of other_genes) {
+            const curi = ids[i];
+            let entry = curi[0];
+            if (curi.length > 1) {
+                entry += " (" + curi.slice(1).join(", ") + ")";
+            }
+            accumulated.push(curi);
+        }
+
+        const st = document.createElement("strong");
+        st.textContent = "Other genes:";
+        other_node.replaceChildren(st, document.createTextNode(accumulated.join(", ")));
+    }
+}
+
+async function populateGeneLists(index) {
+    const choice_id = "gene-id-choice-" + String(index);
+    const all_choices = document.getElementById(choice_id).childNodes;
+    let chosen = "symbol";
+    for (const node of all_choices) {
+        if (node.nodeName == "INPUT" && node.getAttribute("name") == choice_id && node.checked) {
+            chosen = node.getAttribute("value");
+        }
+    }
+
+    const inside_pp = document.getElementById("overlap-genes-" + String(index));
+    const outside_pp = document.getElementById("other-genes-" + String(index));
+
+    const species = precomputed.species;
+    const res = precomputed.results[index];
+    await populate_gene_lists(species, chosen, inside_pp, res.overlapping_genes, outside_pp, res.other_genes);
+    return false;
+}
+
 function hideGeneSetDetails(index) {
     document.getElementById("result-row-expanded-" + String(index)).remove();
     const butt = document.getElementById("show-details-" + String(index));
@@ -529,3 +572,4 @@ function hideGeneSetDetails(index) {
 
 window.showGeneSetDetails = showGeneSetDetails;
 window.hideGeneSetDetails = hideGeneSetDetails;
+window.populateGeneLists = populateGeneLists;
