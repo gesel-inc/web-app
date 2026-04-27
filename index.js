@@ -110,7 +110,9 @@ async function sanitizeGenes() {
     if (gene_text == precomputed.raw_genes) {
         return;
     }
+
     if (gene_text == "") {
+        precomputed.raw_genes = gene_text;
         precomputed.genes = null;
         return;
     }
@@ -129,6 +131,7 @@ async function sanitizeGenes() {
     }
 
     if (queries.length == 0) {
+        precomputed.raw_genes = gene_text;
         precomputed.genes = null;
         return;
     }
@@ -152,7 +155,13 @@ async function sanitizeGenes() {
     }
 
     gene_el.value = lines.join("\n");
+
+    // Only update 'precomputed' right before returning, and make sure to update both 'genes' and 'raw_genes' at once.
+    // If they are separated by an async operation, other concurrently running functions might be interleaved.
+    // Then we'd get weird inconsistencies. 
     precomputed.genes = genes;
+    precomputed.raw_genes = gene_text;
+    return;
 }
 
 window.sanitizeGenes = sanitizeGenes;

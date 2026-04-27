@@ -17,7 +17,7 @@
   <body>
     <script type="module" src="index.js"></script>
     <script type="module">
-    addEventListener("change", ev => {
+    addEventListener("change", async ev => {
         if (ev.target.name == "species" && ev.target.type == "radio") {
             const button = document.getElementById("search");
             const is_disabled = button.getAttribute("disabled");
@@ -28,8 +28,8 @@
             const species = getSpecies();
             const previous = setSpecies(species);
             if (species != previous) {
-                updateCollections();
-                sanitizeGenes();
+                await updateCollections();
+                await sanitizeGenes();
             }
 
             if (!is_disabled) {
@@ -42,7 +42,7 @@
                 button.setAttribute("disabled", true);
             }
 
-            sanitizeGenes();
+            await sanitizeGenes();
 
             if (!is_disabled) {
                 button.removeAttribute("disabled");
