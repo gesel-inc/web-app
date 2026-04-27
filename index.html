@@ -36,7 +36,17 @@
                 button.removeAttribute("disabled");
             }
         } else if (ev.target.id == "filter-genes") {
+            const button = document.getElementById("search");
+            const is_disabled = button.getAttribute("disabled");
+            if (!is_disabled) {
+                button.setAttribute("disabled", true);
+            }
+
             sanitizeGenes();
+
+            if (!is_disabled) {
+                button.removeAttribute("disabled");
+            }
         }
     });
     </script>

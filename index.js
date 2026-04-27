@@ -45,7 +45,7 @@ const config = gesel.newConfig(
     }
 );
 
-const precomputed = { "species": null, "genes": null, "raw_genes": null };
+const precomputed = { "species": null, "genes": null, "raw_genes": null, "results": null, "page": null };
 
 /*****************************************************/
 
@@ -159,6 +159,8 @@ window.sanitizeGenes = sanitizeGenes;
 
 /*****************************************************/
 
+const pageSize = 50;
+
 async function formatTable(species, results, start, end) {
     const tab = document.createElement("table");
     const actual_start = Math.min(start, results.length);
@@ -237,6 +239,73 @@ async function formatTable(species, results, start, end) {
     document.getElementById("tab").replaceChildren(tab);
 }
 
+function createPageLinks(num_results, current_page, page_size) {
+    let num_pages = Math.ceil(num_results / page_size);
+
+    const maxgap = 3;
+    const to_show = new Set;
+
+    // Adding the extremes.
+    {
+        const limit = Math.min(num_pages, 3);
+        for (var i = 0; i < limit; ++i) {
+            to_show.add(i);
+            to_show.add(num_pages - i - 1);
+        }
+    }
+
+    // Adding the neighbors.
+    {
+        const limit = Math.min(num_pages, current_page + 2);
+        for (var i = Math.max(current_page - 1, 0); i < limit; i++) {
+            to_show.add(i);
+        }
+    }
+
+    const to_show_list = Array.from(to_show);
+    to_show_list.sort((a, b) => a - b);
+    const pages_list = [0];
+
+    // Filling in the gaps so avoid unnecessary truncations.
+    if (to_show_list.length) {
+        for (var i = 1; i < to_show_list.length; i++) {
+            const current = to_show_list[i];
+            const previous = to_show_list[i - 1];
+            if (current == previous + 1) {
+                pages_list.push(current);
+            } else if (current <= previous + 3) {
+                for (var j = previous + 1; j <= current; j++) {
+                    pages_list.push(j);
+                }
+            } else {
+                pages_list.push(null); // gap indicator.
+                pages_list.push(current);
+            }
+        }
+    }
+
+    // Creating DOM elements.
+    for (var i = 0; i < pages_list.length; i++) {
+        if (pages_list[i] == null) {
+            pages_list[i] = "...";
+        } else if (pages_list[i] === current_page) {
+            const current = document.createElement("button");
+            current.textContent = String(pages_list[i] + 1);
+            current.setAttribute("disabled", true);
+            pages_list[i] = current;
+        } else {
+            const current = document.createElement("button");
+            current.textContent = String(pages_list[i] + 1);
+            current.setAttribute("onclick", "updatePage(" + String(pages_list[i]) + ");");
+            pages_list[i] = current;
+        }
+    }
+
+    const ptitle = document.createElement("strong");
+    ptitle.textContent = "Pages:";
+    document.getElementById("pages").replaceChildren(ptitle, ...pages_list);
+}
+
 async function performSearch() { 
     const species = precomputed.species;
 
@@ -292,8 +361,21 @@ async function performSearch() {
         res = [];
     }
 
-    formatTable(species, res, 0, 50);
+    formatTable(species, res, 0, pageSize);
+    createPageLinks(res.length, 0, pageSize);
+    precomputed.results = res;
+    precomputed.page = 0;
+    return false;
+}
+
+async function updatePage(new_page) {
+    const species = precomputed.species;
+    const res = precomputed.results;
+    await formatTable(species, res, pageSize * new_page, pageSize * (new_page + 1));
+    createPageLinks(res.length, new_page, pageSize);
+    precomputed.page = new_page;
     return false;
 }
 
 window.performSearch = performSearch;
+window.updatePage = updatePage;
