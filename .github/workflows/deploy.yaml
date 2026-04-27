@@ -1,0 +1,44 @@
+on:
+  push:
+    branches:
+      - master
+
+name: Deploy app
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v6
+
+    - name: Set up Node
+      uses: actions/setup-node@v5
+      with:
+        node-version: latest
+
+    - name: Restore the node modules
+      uses: actions/cache@v5
+      with:
+        path: '**/node_modules'
+        key: modules-${{ hashFiles('**/package.json') }}
+
+    - name: Install dependencies
+      run: npm i
+
+    - name: Remove unneeded files
+      run: |
+        rm .gitignore
+        rm package.json package-lock.json
+        rm README.md
+        rm LICENSE
+
+    - name: Skip Jekyll
+      run: touch .nojekyll
+
+    - name: GH Pages Deployment
+      uses: JamesIves/github-pages-deploy-action@v4
+      with:
+        branch: gh-pages # The branch the action should deploy to.
+        folder: .
+        target-folder: docs
+        clean: true # Automatically remove deleted files from the deploy branch
