@@ -9,6 +9,24 @@
   clear: both;
 }
 
+.option-box {
+  border-radius: 0.25rem;
+  border: 1px solid grey;
+  margin: 0.25rem;
+}
+
+.option-header {
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid grey;
+  padding: 0.25rem;
+  background-color: lightgrey;
+}
+
+.option-contents {
+  padding: 0.25rem;
+}
+
 .loader {
   display: inline-block;
   width: 1em;
