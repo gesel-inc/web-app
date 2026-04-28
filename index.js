@@ -247,7 +247,7 @@ async function formatTable(species, results, start, end) {
             const element = document.createElement("td");
             const button = document.createElement("button");
             button.id = "show-details-" + String(i);
-            button.textContent = "show details";
+            button.textContent = "Show details";
             button.setAttribute("onclick", "showGeneSetDetails(" + String(i) + ");");
             element.appendChild(button);
             return element;
@@ -403,8 +403,14 @@ window.updatePage = updatePage;
 /*****************************************************/
 
 async function showGeneSetDetails(index) {
+    const expanded_id = "result-row-expanded-" + String(index);
+    if (document.getElementById(expanded_id) !== null) {
+        // Avoid creating multiple expanded rows when the user manages to press multiple times. 
+        return false;
+    }
+
     const row = document.createElement("tr");
-    row.id = "result-row-expanded-" + String(index);
+    row.id = expanded_id;
     const entry = document.createElement("td");
     entry.setAttribute("colspan", 7);
 
@@ -564,7 +570,12 @@ async function populateGeneLists(index) {
 }
 
 function hideGeneSetDetails(index) {
-    document.getElementById("result-row-expanded-" + String(index)).remove();
+    const expanded = document.getElementById("result-row-expanded-" + String(index));
+    if (expanded == null) {
+        return false;
+    }
+
+    expanded.remove();
     const butt = document.getElementById("show-details-" + String(index));
     butt.textContent = "Show details";
     butt.setAttribute("onclick", "showGeneSetDetails(" + String(index) + ");");
