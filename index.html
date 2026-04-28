@@ -23,6 +23,7 @@
             const button = document.getElementById("search");
             const is_disabled = button.getAttribute("disabled");
             if (!is_disabled) {
+                button.innerHTML = "Validating inputs <span class=\"loader\" d></span>";
                 button.setAttribute("disabled", true);
             }
 

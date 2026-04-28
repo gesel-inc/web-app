@@ -328,6 +328,12 @@ function createPageLinks(num_results, current_page, page_size) {
 
 async function performSearch() { 
     const species = precomputed.species;
+    const button = document.getElementById("search");
+    const is_disabled = button.getAttribute("disabled");
+    if (!is_disabled) {
+        button.innerHTML = "Querying <span class=\"loader\" d></span>";
+        button.setAttribute("disabled", true);
+    }
 
     await sanitizeGenes(); // just in case someone clicks on search before the event listener fired.
     let res = null;
@@ -385,6 +391,12 @@ async function performSearch() {
     createPageLinks(res.length, 0, pageSize);
     precomputed.results = res;
     precomputed.page = 0;
+
+    if (!is_disabled) {
+        button.innerHTML = "Search gene sets";
+        button.removeAttribute("disabled");
+    }
+
     return false;
 }
 
@@ -407,6 +419,13 @@ async function showGeneSetDetails(index) {
     if (document.getElementById(expanded_id) !== null) {
         // Avoid creating multiple expanded rows when the user manages to press multiple times. 
         return false;
+    }
+
+    const butt = document.getElementById("show-details-" + String(index));
+    const is_disabled = butt.getAttribute("disabled");
+    if (!is_disabled) {
+        butt.innerHTML = "Fetching <span class=\"loader\"></span>";
+        butt.setAttribute("disabled", true);
     }
 
     const row = document.createElement("tr");
@@ -507,8 +526,10 @@ async function showGeneSetDetails(index) {
     row.appendChild(entry);
     document.getElementById("result-row-" + String(index)).after(row);
 
-    const butt = document.getElementById("show-details-" + String(index));
-    butt.textContent = "Hide details";
+    if (!is_disabled) {
+        butt.textContent = "Hide details";
+        butt.removeAttribute("disabled");
+    }
     butt.setAttribute("onclick", "hideGeneSetDetails(" + String(index) + ");");
 
     return false;
