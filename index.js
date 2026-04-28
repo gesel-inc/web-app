@@ -13,12 +13,12 @@ async function getFile(url, key, file) {
     let existing = await cache.match(address);
     if (typeof existing == "undefined") {
         existing = await fetch(address); 
+        if (!existing.ok) {
+            throw new Error("failed to request '" + file + "' (status " + String(existing.status) + ")");
+        }
         cache.put(address, existing.clone());
     }
 
-    if (!existing.ok) {
-        throw new Error("failed to request '" + file + "' (status " + String(existing.status) + ")");
-    }
     return existing.arrayBuffer();
 }
 
