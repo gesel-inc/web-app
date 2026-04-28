@@ -30,10 +30,10 @@ const config = gesel.newConfig(
         const everything = [];
         // GitHub doesn't support multi-range requests, but if it did, we could use that instead.
         for (var i = 0; i < start.length; i++) {
-            const resp = fetch(address, { headers: { Range: "bytes=" + String(start[i]) + "-" + String(end[i] - 1) } })
+            const resp = fetch(address + "?start=" + String(start[i]) + "&end=" + String(end[i] - 1))
                 .then(
                     res => {
-                        if (!res.ok) {
+                        if (res.status != 206) {
                             throw new Error("failed to fetch range from '" + file + "' (status " + String(res.status) + ")");
                         }
                         return res.arrayBuffer();
