@@ -35,19 +35,7 @@
             }
 
             if (!is_disabled) {
-                button.removeAttribute("disabled");
-            }
-
-        } else if (ev.target.id == "filter-genes") {
-            const button = document.getElementById("search");
-            const is_disabled = button.getAttribute("disabled");
-            if (!is_disabled) {
-                button.setAttribute("disabled", true);
-            }
-
-            await sanitizeGenes();
-
-            if (!is_disabled) {
+                button.innerHTML = "Search gene sets";
                 button.removeAttribute("disabled");
             }
 
@@ -98,6 +86,11 @@
           <em>
             Enter a list of genes (Ensembl or Entrez IDs or symbols, one per line, text after <code>#</code> is ignored) and we'll find any gene sets with overlaps.
             Sets will be ranked by the enrichment p-value.
+          </em>
+        </p>
+        <p>
+          <em>
+            Not sure if your gene identifiers are recognized by the database? Click <button id="validate-genes" onclick="sanitizeGenes()">here</button> to validate them!
           </em>
         </p>
       </fieldset>

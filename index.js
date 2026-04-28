@@ -104,7 +104,7 @@ window.updateCollections = updateCollections;
 
 /*****************************************************/
 
-async function sanitizeGenes() { 
+async function sanitizeGenesRaw() { 
     const gene_el = document.getElementById("filter-genes");
     const gene_text = gene_el.value;
     if (gene_text == precomputed.raw_genes) {
@@ -139,15 +139,26 @@ async function sanitizeGenes() {
     var gene_info = await gesel.searchGenes(precomputed.species, queries, config);
     let genes = [];
     const failmsg = " # ❌ no matching gene found 😢"
+    const okmsg = " # ✅ gene found 😄"
 
     for (let i = 0; i < gene_info.length; i++) {
         let x = gene_info[i];
+        let curline = lines[indices[i]];
+
         if (x.length === 0) {
-            const curline = lines[indices[i]];
             if (!curline.endsWith(failmsg)) {
-                lines[indices[i]] += failmsg;
+                if (curline.endsWith(okmsg)) {
+                    curline = curline.slice(0, curline.length - okmsg.length);
+                }
+                lines[indices[i]] = curline + failmsg;
             }
         } else {
+            if (!curline.endsWith(okmsg)) {
+                if (curline.endsWith(failmsg)) {
+                    curline = curline.slice(0, curline.length - failmsg.length);
+                }
+                lines[indices[i]] = curline + okmsg;
+            }
             for (const y of x) {
                 genes.push(y);
             }
@@ -162,6 +173,24 @@ async function sanitizeGenes() {
     precomputed.genes = genes;
     precomputed.raw_genes = gene_text;
     return;
+}
+
+async function sanitizeGenes() {
+    const button = document.getElementById("validate-genes");
+    const is_disabled = button.getAttribute("disabled");
+    if (!is_disabled) {
+        button.innerHTML = "here <span class=\"loader\" d></span>";
+        button.setAttribute("disabled", true);
+    }
+
+    await sanitizeGenesRaw();
+
+    if (!is_disabled) {
+        button.innerHTML = "here";
+        button.removeAttribute("disabled");
+    }
+
+    return false;
 }
 
 window.sanitizeGenes = sanitizeGenes;
@@ -335,7 +364,7 @@ async function performSearch() {
         button.setAttribute("disabled", true);
     }
 
-    await sanitizeGenes(); // just in case someone clicks on search before the event listener fired.
+    await sanitizeGenesRaw();
     let res = null;
     if (precomputed.genes !== null) {
         res = await gesel.findOverlappingSets(species, precomputed.genes, config, { includeSize: true });
