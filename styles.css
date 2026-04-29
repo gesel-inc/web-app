@@ -1,23 +1,39 @@
 .column {
   float: left;
+  width: 0;
+  min-width: 200px;
+  margin: 12px 15px;
+  flex-grow: 1;
 }
 
-/* Clear floats after the columns */
-.row:after {
-  content: "";
-  display: table;
-  clear: both;
+.row {
+  display: flex;
+  flex-flow: row wrap;
+  justify-content: center;
+  align-items: stretch;
+  padding: 0;
+  margin: 0;
+  list-style: none;
 }
 
 body {
   font-family: Verdana, sans-serif;
-  color: #303030;
+}
+
+.species-box {
+  border-radius: 0.25rem;
+  background: whitesmoke;
+  border: 2px solid lightgrey;
+  margin: 12px 15px;
+  padding: 12px 15px;
 }
 
 .option-box {
   border-radius: 0.25rem;
   border: 2px solid lightgrey;
-  margin: 12px 15px;
+  height: 100%;
+  box-sizing: border-box;
+  background-color: whitesmoke;
 }
 
 .option-header {
@@ -25,7 +41,6 @@ body {
   align-items: center;
   border-bottom: 2px solid lightgrey;
   padding: 12px 15px;
-  background-color: lightgrey;
 }
 
 .option-contents {
@@ -51,10 +66,12 @@ body {
   padding: 0.25rem;
   max-height: 190px;
   overflow-y: auto;
+  background-color: white;
 }
 
 .option-description {
   padding: 12px 15px;
+  color: grey;
 }
 
 .search-wrapper {
@@ -63,9 +80,18 @@ body {
 
 .search-button {
   width: 100%;
-  font-size: large;
   box-sizing: border-box; 
+  font-size: x-large;
+  font-weight: bold;
+  border: 2px solid lightgrey;
+  background: #303030;
+  color: white;
   padding: 0.5rem;
+}
+
+.search-button:hover {
+  background: gray;
+  color: white;
 }
 
 .result-table {
