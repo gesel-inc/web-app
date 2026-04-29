@@ -45,90 +45,94 @@
     </script>
     <h1>Bioconductor gene set search</h1>
 
-  <div class="row">
-    <div class="column" style="width:10%">
-      <div class="option-box">
-        <span class="option-header">Choose species</span>
-        <div id="species-list" style="border: 1px solid grey; margin: 0.25rem; padding: 0.25rem; max-height:200px">
-          <input type="radio" id="human" name="species" value="9606" checked>
-          <label for="human">Human</label>
-          <br/>
-          <input type="radio" id="mouse" name="species" value="10090">
-          <label for="mouse">Mouse</label>
-          <br/>
-          <input type="radio" id="fly" name="species" value="7227">
-          <label for="fly">Fly</label>
-          <br/>
-          <input type="radio" id="rat" name="species" value="10116">
-          <label for="rat">Rat</label>
-          <br/>
-          <input type="radio" id="worm" name="species" value="6239">
-          <label for="worm">Worm</label>
-          <br/>
-          <input type="radio" id="zebrafish" name="species" value="7955">
-          <label for="zebrafish">Zebrafish</label>
-          <br/>
-          <input type="radio" id="chimp" name="species" value="9598">
-          <label for="chimp">Chimp</label>
+    <div class="row">
+      <div class="column" style="width:10%">
+        <div class="option-box">
+          <span class="option-header">Choose species</span>
+          <div id="species-list" class="input-boundbox">
+            <input type="radio" id="human" name="species" value="9606" checked>
+            <label for="human">Human</label>
+            <br/>
+            <input type="radio" id="mouse" name="species" value="10090">
+            <label for="mouse">Mouse</label>
+            <br/>
+            <input type="radio" id="fly" name="species" value="7227">
+            <label for="fly">Fly</label>
+            <br/>
+            <input type="radio" id="rat" name="species" value="10116">
+            <label for="rat">Rat</label>
+            <br/>
+            <input type="radio" id="worm" name="species" value="6239">
+            <label for="worm">Worm</label>
+            <br/>
+            <input type="radio" id="zebrafish" name="species" value="7955">
+            <label for="zebrafish">Zebrafish</label>
+            <br/>
+            <input type="radio" id="chimp" name="species" value="9598">
+            <label for="chimp">Chimp</label>
+          </div>
+          <p style="margin:0.25rem">
+            <em>Pretty self-explanatory.</em>
+          </p>
         </div>
-        <p style="margin:0.25rem">
-          <em>Pretty self-explanatory.</em>
-        </p>
       </div>
-    </div>
-    <div class="column" style="width:30%">
-      <div class="option-box">
-        <span class="option-header">Search on genes of interest</span>
-        <div style="margin-top:0.25rem; margin-left:0.25rem; margin-right:0.25rem">
-          <textarea id="filter-genes" placeholder="SNAP25&#10;Neurod6&#10;ATOH1&#10;ENSG00000142208" style="width: 100%; height: 200px; vertical-align:bottom; box-sizing:border-box"></textarea>
+      <div class="column" style="width:30%">
+        <div class="option-box">
+          <span class="option-header">Search on genes of interest</span>
+          <div class="textarea-wrapper">
+            <textarea id="filter-genes" class="input-textbox" placeholder="SNAP25&#10;Neurod6&#10;ATOH1&#10;ENSG00000142208"></textarea>
+          </div>
+          <p style="margin:0.25rem">
+            <em>Enter a list of genes and we'll find any gene sets with overlaps.</em>
+          </p>
+          <ul style="margin:0.25rem">
+            <li><em>Ensembl or Entrez IDs or gene symbols are supported.</em></li>
+            <li><em>List one gene per line, any text after <code>#</code> will be ignored.</em></li>
+            <li><em>Sets will be ranked by the enrichment p-value in the output table.</em></li>
+          </ul>
+          <p style="margin:0.25rem">
+            <em>
+              Not sure if your gene identifiers are recognized by the database?
+            </em>
+            <button id="validate-genes" onclick="sanitizeGenes()"><em>Validate genes here!</em></button>
+          </p>
         </div>
-        <p style="margin:0.25rem">
-          <em>Enter a list of genes and we'll find any gene sets with overlaps.</em>
-        </p>
-        <ul style="margin:0.25rem">
-          <li><em>Ensembl or Entrez IDs or gene symbols are supported.</em></li>
-          <li><em>List one gene per line, any text after <code>#</code> will be ignored.</em></li>
-          <li><em>Sets will be ranked by the enrichment p-value in the output table.</em></li>
-        </ul>
-        <p style="margin:0.25rem">
-          <em>
-            Not sure if your gene identifiers are recognized by the database?
-          </em>
-          <button id="validate-genes" onclick="sanitizeGenes()"><em>Validate genes here!</em></button>
-        </p>
       </div>
-    </div>
-    <div class="column", style="width:30%">
-      <div class="option-box">
-        <span class="option-header">Search gene set names/descriptions</span>
-        <div style="margin-top:0.25rem; margin-left:0.25rem; margin-right:0.25rem">
-          <textarea id="filter-text" placeholder="pancrea* cancer" style="width:100%; max-width:100%; height: 200px; vertical-align: bottom; box-sizing: border-box;"></textarea>
+      <div class="column", style="width:30%">
+        <div class="option-box">
+          <span class="option-header">Search gene set names/descriptions</span>
+          <div class="textarea-wrapper">
+            <textarea id="filter-text" placeholder="pancrea* cancer" class="input-textbox"></textarea>
+          </div>
+          <p style="margin:0.25rem">
+            <em>
+              Restrict the search to sets with names or descriptions containing all search terms.
+              <code>*</code> and <code>?</code> wildcards are supported.
+            </em>
+          </p>
         </div>
-        <p style="margin:0.25rem">
-          <em>
-            Restrict the search to sets with names or descriptions containing all search terms.
-            <code>*</code> and <code>?</code> wildcards are supported.
-          </em>
-        </p>
+      </div>
+      <div class="column", style="width:30%">
+        <div class="option-box">
+          <span class="option-header">Restrict gene set collections</span>
+          <div id="collection-availability" class="input-boundbox">
+          </div>
+          <p style="margin:0.25rem">
+            <em>
+              Limit the search to particular gene set collections.
+            </em>
+          </p>
+        </div>
       </div>
     </div>
-    <div class="column", style="width:30%">
-      <div class="option-box">
-        <span class="option-header">Restrict gene set collections</span>
-        <div id="collection-availability" style="max-height:190px; overflow-y:auto; margin:0.25rem; padding:0.25rem; border: 1px solid grey"></div>
-        <p style="margin:0.25rem">
-          <em>
-            Limit the search to particular gene set collections.
-          </em>
-        </p>
+
+    <div class="row">
+      <div class="search-wrapper">
+        <button id="search" onclick="performSearch()" class="search-button">Search for gene sets</button>
       </div>
     </div>
-  </div>
-  <button id="search" onclick="performSearch()" style="width:100%; padding:0.5rem; font-size:large">Search for gene sets</button>
-  <hr/>
-  <div id="tab">
-  </div>
-  <div id="pages">
-  </div>
+  
+    <div id="tab"></div>
+    <div id="pages"></div>
   </body>
 </html>
