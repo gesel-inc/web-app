@@ -25,7 +25,7 @@
 
     <h1>Bioconductor gene set search</h1>
 
-    <div class="species-box">
+    <div id="species-input">
       <label for="species-select">Choose species:</label>
       <select name="species" id="species-select" onchange="window.setSpecies(this.value);">
         <option value="9606">Human</option>
@@ -41,13 +41,13 @@
     <div class="row">
       <div class="column">
         <div class="option-box">
-          <span class="option-header">Search on genes of interest</span>
+          <label for="filter-genes">Search on genes of interest:</label>
           <div class="textarea-wrapper">
             <textarea id="filter-genes" class="input-textbox" placeholder="SNAP25&#10;Neurod6&#10;ATOH1&#10;ENSG00000142208"></textarea>
           </div>
           <div class="option-description">
             <p style="margin:0.25rem">
-              <em>Search for sets that overlap any of the specified genes.</em>
+              <em>Filter to sets that overlap any of the specified genes.</em>
             </p>
             <ul style="margin:0.25rem">
               <li><em>Ensembl or Entrez IDs or gene symbols are supported.</em></li>
@@ -65,14 +65,14 @@
       </div>
       <div class="column">
         <div class="option-box">
-          <span class="option-header">Search gene set names/descriptions</span>
+          <label for="filter-text">Search on names/descriptions:</span>
           <div class="textarea-wrapper">
             <textarea id="filter-text" placeholder="pancrea* cancer" class="input-textbox"></textarea>
           </div>
           <div class="option-description">
             <p style="margin:0.25rem">
               <em>
-                Restrict the search to sets with names or descriptions containing all search terms.
+                Filter to sets with names or descriptions containing all search terms.
                 <code>*</code> and <code>?</code> wildcards are supported.
               </em>
             </p>
@@ -81,13 +81,13 @@
       </div>
       <div class="column">
         <div class="option-box">
-          <span class="option-header">Restrict gene set collections</span>
-          <div id="collection-availability" class="input-boundbox">
-          </div>
+          <label for="collection-availability">Restrict to collections:</label>
+          <form id="collection-availability">
+          </form>
           <div class="option-description">
             <p style="margin:0.25rem">
               <em>
-                Limit the search to particular gene set collections.
+                Filter to gene sets in the specified collections.
               </em>
             </p>
           </div>
@@ -96,8 +96,10 @@
     </div>
 
     <div class="search-wrapper">
-      <button id="search" onclick="performSearch()" class="search-button">SEARCH</button>
+      <button id="search" onclick="performSearch()">Search for gene sets</button>
     </div>
+
+    <hr/>
   
     <div id="tab"></div>
     <div id="pages" style="display: flex; justify-content: center; padding-top: 2rem"></div>
