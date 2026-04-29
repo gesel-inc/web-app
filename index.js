@@ -222,7 +222,7 @@ async function formatTable(species, results, start, end) {
 
     const thead = document.createElement("thead");
     const header = document.createElement("tr");
-    const colnames = ["Name", "Description", "Collection", "Size", "Overlap", "p-value", ""];
+    const colnames = ["Name", "Description", "Collection", "Size", "Overlap", "p-value"];
     const colwidths = [ 20, 30, 20, 5, 5, 10, 10 ];
     for (var c = 0; c < colnames.length; c++) {
         const element = document.createElement("th");
@@ -237,9 +237,6 @@ async function formatTable(species, results, start, end) {
         }
         element.setAttribute("style", style);
 
-        if (colnames[c] != "") {
-            element.setAttribute("class", "result-header");
-        }
         header.appendChild(element);
     }
 
@@ -253,6 +250,7 @@ async function formatTable(species, results, start, end) {
     for (var i = actual_start; i < actual_end; i++) {
         const currow = document.createElement("tr");
         currow.id = "result-row-" + String(i);
+        currow.setAttribute("onclick", "toggleGeneSetDetails(" + String(i) + ");");
         const curres = results[i];
         const set = sinfo[curres.id];
 
@@ -317,16 +315,6 @@ async function formatTable(species, results, start, end) {
                 return element;
             })());
         }
-
-        currow.appendChild((() => {
-            const element = document.createElement("td");
-            const button = document.createElement("button");
-            button.id = "show-details-" + String(i);
-            button.textContent = "Show details";
-            button.setAttribute("onclick", "showGeneSetDetails(" + String(i) + ");");
-            element.appendChild(button);
-            return element;
-        })());
 
         tbody.appendChild(currow);
     }
@@ -413,6 +401,7 @@ async function performSearch() {
     const species = precomputed.species;
     const button = document.getElementById("search");
     const is_disabled = button.getAttribute("disabled");
+    const old_html = button.innerHTML;
     if (!is_disabled) {
         button.innerHTML = "Searching <span class=\"loader\"></span>";
         button.setAttribute("disabled", true);
@@ -477,7 +466,7 @@ async function performSearch() {
     precomputed.page = 0;
 
     if (!is_disabled) {
-        button.innerHTML = "Search gene sets";
+        button.innerHTML = old_html;
         button.removeAttribute("disabled");
     }
 
@@ -499,24 +488,30 @@ window.updatePage = updatePage;
 
 /*****************************************************/
 
-async function showGeneSetDetails(index) {
+async function toggleGeneSetDetails(index) {
     const expanded_id = "result-row-expanded-" + String(index);
-    if (document.getElementById(expanded_id) !== null) {
-        // Avoid creating multiple expanded rows when the user manages to press multiple times. 
+    let expanded = document.getElementById(expanded_id);
+    if (expanded !== null) {
+        expanded.remove();
+        const butt = document.getElementById("show-details-" + String(index));
+        butt.textContent = "Show details";
+        butt.setAttribute("onclick", "showGeneSetDetails(" + String(index) + ");");
         return false;
     }
 
-    const butt = document.getElementById("show-details-" + String(index));
-    const is_disabled = butt.getAttribute("disabled");
-    if (!is_disabled) {
-        butt.innerHTML = "Fetching <span class=\"loader\"></span>";
-        butt.setAttribute("disabled", true);
-    }
+    // Putting together a temporary object.
+    expanded = document.createElement("tr");
+    expanded.id = expanded_id;
 
-    const row = document.createElement("tr");
-    row.id = expanded_id;
+    const tmp = document.createElement("td");
+    tmp.setAttribute("colspan", 6);
+    tmp.setAttribute("class", "result-expanded");
+    tmp.innerHTML = "<div style=\"display:flex; justify-content:center\"><p>Fetching <span class=\"loader\"></span></p></div>";
+    expanded.replaceChildren(tmp);
+    document.getElementById("result-row-" + String(index)).after(expanded);
+
     const entry = document.createElement("td");
-    entry.setAttribute("colspan", 7);
+    entry.setAttribute("colspan", 6);
     entry.setAttribute("class", "result-expanded");
 
     const species = precomputed.species;
@@ -600,17 +595,8 @@ async function showGeneSetDetails(index) {
     wrapper.appendChild(outside_pp);
 
     await populate_gene_lists(species, "symbol", inside_pp, inside, outside_pp, outside);
-
     entry.appendChild(wrapper);
-    row.appendChild(entry);
-    document.getElementById("result-row-" + String(index)).after(row);
-
-    if (!is_disabled) {
-        butt.textContent = "Hide details";
-        butt.removeAttribute("disabled");
-    }
-    butt.setAttribute("onclick", "hideGeneSetDetails(" + String(index) + ");");
-
+    expanded.replaceChildren(entry);
     return false;
 } 
 
@@ -659,18 +645,5 @@ async function populateGeneLists(index, type) {
     return false;
 }
 
-function hideGeneSetDetails(index) {
-    const expanded = document.getElementById("result-row-expanded-" + String(index));
-    if (expanded == null) {
-        return false;
-    }
-
-    expanded.remove();
-    const butt = document.getElementById("show-details-" + String(index));
-    butt.textContent = "Show details";
-    butt.setAttribute("onclick", "showGeneSetDetails(" + String(index) + ");");
-}
-
-window.showGeneSetDetails = showGeneSetDetails;
-window.hideGeneSetDetails = hideGeneSetDetails;
+window.toggleGeneSetDetails = toggleGeneSetDetails;
 window.populateGeneLists = populateGeneLists;

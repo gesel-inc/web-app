@@ -97,6 +97,10 @@ body {
   table-layout: fixed;
 }
 
+.result-table tbody tr {
+  cursor: pointer;
+}
+
 .result-header {
   background-color: #C8C8C8;
   text-align: left;
@@ -142,5 +146,4 @@ body {
 .footer {
   display: flex;
   justify-content: center;
-  padding-top: 2rem
 }
