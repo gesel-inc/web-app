@@ -201,48 +201,66 @@ const pageSize = 50;
 
 async function formatTable(species, results, start, end) {
     const tab = document.createElement("table");
+    tab.setAttribute("class", "result-table");
     const actual_start = Math.min(start, results.length);
     const actual_end = Math.min(end, results.length);
 
+    const thead = document.createElement("thead");
     const header = document.createElement("tr");
     const colnames = ["Name", "Description", "Collection", "Size", "Overlap", "p-value", ""];
-    for (const c of colnames) {
+    const colwidths = [ 20, 30, 20, 5, 5, 10, 10 ];
+    for (var c = 0; c < colnames.length; c++) {
         const element = document.createElement("th");
-        element.textContent = c;
+        element.textContent = colnames[c];
+        element.setAttribute("style", "width: " + String(colwidths[c]) + "%");
+        if (colnames[c] != "") {
+            element.setAttribute("class", "result-header");
+        }
         header.appendChild(element);
     }
-    tab.appendChild(header);
+
+    thead.appendChild(header);
+    tab.appendChild(thead);
 
     const sinfo = await gesel.fetchAllSets(species, config);
     const cinfo = await gesel.fetchAllCollections(species, config);
 
+    const tbody = document.createElement("tbody");
     for (var i = actual_start; i < actual_end; i++) {
         const currow = document.createElement("tr");
         currow.id = "result-row-" + String(i);
         const curres = results[i];
         const set = sinfo[curres.id];
 
+        // We don't use nth-of-type because we want to preserve the colors
+        // even after inserting rows with the expanded information.
+        const cell_class = "result-cell-" + (i % 2 == 0 ? "even" : "odd");
+
         currow.appendChild((() => {
             const element = document.createElement("td");
             element.textContent = set.name;
+            element.setAttribute("class", cell_class);
             return element;
         })());
 
         currow.appendChild((() => {
             const element = document.createElement("td");
             element.textContent = set.description;
+            element.setAttribute("class", cell_class);
             return element;
         })());
 
         currow.appendChild((() => {
             const element = document.createElement("td");
             element.textContent = cinfo[set.collection].title;
+            element.setAttribute("class", cell_class);
             return element;
         })());
 
         currow.appendChild((() => {
             const element = document.createElement("td");
             element.textContent = set.size;
+            element.setAttribute("class", cell_class);
             return element;
         })());
 
@@ -250,24 +268,28 @@ async function formatTable(species, results, start, end) {
             currow.appendChild((() => {
                 const element = document.createElement("td");
                 element.textContent = curres.count;
+                element.setAttribute("class", cell_class);
                 return element;
             })());
 
             currow.appendChild((() => {
                 const element = document.createElement("td");
                 element.textContent = curres.pvalue;
+                element.setAttribute("class", cell_class);
                 return element;
             })());
         } else {
             currow.appendChild((() => {
                 const element = document.createElement("td");
                 element.textContent = "n/a";
+                element.setAttribute("class", cell_class);
                 return element;
             })());
 
             currow.appendChild((() => {
                 const element = document.createElement("td");
                 element.textContent = "n/a";
+                element.setAttribute("class", cell_class);
                 return element;
             })());
         }
@@ -282,9 +304,10 @@ async function formatTable(species, results, start, end) {
             return element;
         })());
 
-        tab.appendChild(currow);
+        tbody.appendChild(currow);
     }
 
+    tab.appendChild(tbody);
     document.getElementById("tab").replaceChildren(tab);
 }
 
