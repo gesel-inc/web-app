@@ -298,7 +298,7 @@ async function formatTable(species, results, start, end) {
 
             currow.appendChild((() => {
                 const element = document.createElement("td");
-                element.textContent = curres.pvalue;
+                element.textContent = curres.pvalue.toExponential(3);
                 element.setAttribute("class", cell_class);
                 return element;
             })());
@@ -402,6 +402,13 @@ function createPageLinks(num_results, current_page, page_size) {
     document.getElementById("pages").replaceChildren(ptitle, ...pages_list);
 }
 
+function createSummary(num_results, current_page, page_size) {
+    const start = Math.min(current_page * page_size + 1, num_results);
+    const end = Math.min((current_page + 1) + page_size, num_results);
+    const info = document.createTextNode("Currently showing results " + String(start) + " to " + String(end) + " out of " + String(num_results) + " total"); 
+    document.getElementById("summary").replaceChildren(info);
+}
+
 async function performSearch() { 
     const species = precomputed.species;
     const button = document.getElementById("search");
@@ -465,6 +472,7 @@ async function performSearch() {
 
     formatTable(species, res, 0, pageSize);
     createPageLinks(res.length, 0, pageSize);
+    createSummary(res.length, 0, pageSize);
     precomputed.results = res;
     precomputed.page = 0;
 
@@ -481,6 +489,7 @@ async function updatePage(new_page) {
     const res = precomputed.results;
     await formatTable(species, res, pageSize * new_page, pageSize * (new_page + 1));
     createPageLinks(res.length, new_page, pageSize);
+    createSummary(res.length, new_page, pageSize);
     precomputed.page = new_page;
     return false;
 }
@@ -562,34 +571,25 @@ async function showGeneSetDetails(index) {
     res.overlapping_genes = inside;
     res.other_genes = outside;
 
-    const choice_id = "gene-id-choice-" + String(index);
     const wrapper = document.createElement("div");
-    wrapper.id = choice_id;
-    const st = document.createElement("strong");
-    st.textContent = "Gene identifier type: ";
+    const choice_id = "gene-id-choice-" + String(index); 
+    const st = document.createElement("label");
+    st.setAttribute("for", choice_id);
+    st.innerHTML = "<strong>Gene identifier type: </strong>";
     wrapper.appendChild(st);
 
+    const selector = document.createElement("select");
+    selector.id = choice_id;
+    selector.setAttribute("onchange", "window.populateGeneLists(" + String(index) + ", this.value);");
     for (const types of [["symbol", "symbol"], ["ensembl", "Ensembl"], ["entrez", "Entrez"]]) {
-        const cur_choice_id = choice_id + "-" + types[0];
-        wrapper.appendChild((function() {
-            const choice = document.createElement("input");
-            choice.type = "radio";
-            choice.id = cur_choice_id;
-            choice.name = choice_id;
+        selector.appendChild((function() {
+            const choice = document.createElement("option");
             choice.value = types[0];
-            if (types[0] == "symbol") {
-                choice.setAttribute("checked", true);
-            }
+            choice.textContent = types[1];
             return choice
         })());
-
-        wrapper.appendChild((function() {
-            const lab = document.createElement("label");
-            lab.setAttribute("for", cur_choice_id);
-            lab.textContent = types[1];
-            return lab; 
-        })());
     }
+    wrapper.append(selector);
 
     const inside_pp = document.createElement("p");
     inside_pp.id = "overlap-genes-" + String(index);
@@ -650,22 +650,12 @@ async function populate_gene_lists(species, type, overlapping_node, overlapping_
     }
 }
 
-async function populateGeneLists(index) {
-    const choice_id = "gene-id-choice-" + String(index);
-    const all_choices = document.getElementById(choice_id).childNodes;
-    let chosen = "symbol";
-    for (const node of all_choices) {
-        if (node.nodeName == "INPUT" && node.getAttribute("name") == choice_id && node.checked) {
-            chosen = node.getAttribute("value");
-        }
-    }
-
+async function populateGeneLists(index, type) {
     const inside_pp = document.getElementById("overlap-genes-" + String(index));
     const outside_pp = document.getElementById("other-genes-" + String(index));
-
     const species = precomputed.species;
     const res = precomputed.results[index];
-    await populate_gene_lists(species, chosen, inside_pp, res.overlapping_genes, outside_pp, res.other_genes);
+    await populate_gene_lists(species, type, inside_pp, res.overlapping_genes, outside_pp, res.other_genes);
     return false;
 }
 
