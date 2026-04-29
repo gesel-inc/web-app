@@ -58,7 +58,7 @@ async function setSpecies(chosen_species) {
     const is_disabled = button.getAttribute("disabled");
     let old_html = button.innerHTML;
     if (!is_disabled) {
-        button.innerHTML = "Retrieving collections <span class=\"loader\" d></span>";
+        button.innerHTML = "Updating to chosen species <span class=\"loader\"></span>";
         button.setAttribute("disabled", true);
     }
 
@@ -73,14 +73,15 @@ async function setSpecies(chosen_species) {
         check.setAttribute("name", "filter-collections");
         check.setAttribute("value", String(i));
         check.setAttribute("checked", "");
-        collection_elements.push(check);
 
         const lab = document.createElement("label");
         lab.setAttribute("for", id);
         lab.innerText = all_collections[i].title;
-        collection_elements.push(lab);
 
-        collection_elements.push(document.createElement("br"));
+        const box = document.createElement("div");
+        box.setAttribute("class", "collection-" + (i % 2 == 0 ? "even" : "odd"));
+        box.replaceChildren(check, lab);
+        collection_elements.push(box);
     }
 
     const coldiv = document.getElementById("collection-availability");
@@ -176,18 +177,32 @@ async function sanitizeGenesRaw() {
 }
 
 async function sanitizeGenes() {
-    const button = document.getElementById("validate-genes");
-    const is_disabled = button.getAttribute("disabled");
-    if (!is_disabled) {
-        button.innerHTML = "<em>Validating</em> <span class=\"loader\" d></span>";
-        button.setAttribute("disabled", true);
+    const s_button = document.getElementById("search");
+    const is_s_disabled = s_button.getAttribute("disabled");
+    const old_s_html = s_button.innerHTML;
+    if (!is_s_disabled) {
+        s_button.innerHTML = "<em>Validating genes</em> <span class=\"loader\"></span>";
+        s_button.setAttribute("disabled", true);
+    }
+
+    const v_button = document.getElementById("validate-genes");
+    const is_v_disabled = v_button.getAttribute("disabled");
+    const old_v_html = v_button.innerHTML;
+    if (!is_v_disabled) {
+        v_button.innerHTML = "<em>Validating</em> <span class=\"loader\"></span>";
+        v_button.setAttribute("disabled", true);
     }
 
     await sanitizeGenesRaw();
 
-    if (!is_disabled) {
-        button.innerHTML = "<em>Validate genes here!</em>";
-        button.removeAttribute("disabled");
+    if (!is_v_disabled) {
+        v_button.innerHTML = old_v_html;
+        v_button.removeAttribute("disabled");
+    }
+
+    if (!is_s_disabled) {
+        s_button.innerHTML = old_s_html;
+        s_button.removeAttribute("disabled");
     }
 
     return false;
@@ -392,7 +407,7 @@ async function performSearch() {
     const button = document.getElementById("search");
     const is_disabled = button.getAttribute("disabled");
     if (!is_disabled) {
-        button.innerHTML = "Querying <span class=\"loader\" d></span>";
+        button.innerHTML = "Searching <span class=\"loader\"></span>";
         button.setAttribute("disabled", true);
     }
 
