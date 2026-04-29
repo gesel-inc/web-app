@@ -16,69 +16,30 @@
     <script type="module" src="./index.js"></script>
     <script type="module">
     addEventListener("change", async ev => {
-        console.log(ev);
-        if (ev.target.name == "species" && ev.target.type == "radio") {
-            const button = document.getElementById("search");
-            const is_disabled = button.getAttribute("disabled");
-            if (!is_disabled) {
-                button.innerHTML = "Validating inputs <span class=\"loader\" d></span>";
-                button.setAttribute("disabled", true);
-            }
-
-            const species = getSpecies();
-            const previous = setSpecies(species);
-            if (species != previous) {
-                await updateCollections();
-                await sanitizeGenes();
-            }
-
-            if (!is_disabled) {
-                button.innerHTML = "Search gene sets";
-                button.removeAttribute("disabled");
-            }
-
-        } else if (ev.target.name.startsWith("gene-id-choice-") && ev.target.type == "radio") {
+        if (ev.target.name.startsWith("gene-id-choice-") && ev.target.type == "radio") {
             const index = ev.target.id.replace("gene-id-choice-", "").replace(/-.*/, "");
             await populateGeneLists(Number(index));
         }
     });
     </script>
+
     <h1>Bioconductor gene set search</h1>
 
+    <div class="species-box">
+      <label for="species-select">Choose species:</label>
+      <select name="species" id="species-select" onchange="window.setSpecies(this.value);">
+        <option value="9606">Human</option>
+        <option value="10090">Mouse</option>
+        <option value="7227">Fly</option>
+        <option value="10116">Rat</option>
+        <option value="6239">Worm</option>
+        <option value="7955">Zebrafish</option>
+        <option value="9598">Chimp</option>
+      </select>
+    </div>
+
     <div class="row">
-      <div class="column" style="width:10%">
-        <div class="option-box">
-          <span class="option-header">Choose species</span>
-          <div id="species-list" class="input-boundbox">
-            <input type="radio" id="human" name="species" value="9606" checked>
-            <label for="human">Human</label>
-            <br/>
-            <input type="radio" id="mouse" name="species" value="10090">
-            <label for="mouse">Mouse</label>
-            <br/>
-            <input type="radio" id="fly" name="species" value="7227">
-            <label for="fly">Fly</label>
-            <br/>
-            <input type="radio" id="rat" name="species" value="10116">
-            <label for="rat">Rat</label>
-            <br/>
-            <input type="radio" id="worm" name="species" value="6239">
-            <label for="worm">Worm</label>
-            <br/>
-            <input type="radio" id="zebrafish" name="species" value="7955">
-            <label for="zebrafish">Zebrafish</label>
-            <br/>
-            <input type="radio" id="chimp" name="species" value="9598">
-            <label for="chimp">Chimp</label>
-          </div>
-          <div class="option-description">
-            <p style="margin:0.25rem">
-              <em>Pretty self-explanatory.</em>
-            </p>
-          </div>
-        </div>
-      </div>
-      <div class="column" style="width:30%">
+      <div class="column">
         <div class="option-box">
           <span class="option-header">Search on genes of interest</span>
           <div class="textarea-wrapper">
@@ -86,11 +47,11 @@
           </div>
           <div class="option-description">
             <p style="margin:0.25rem">
-              <em>Enter a list of genes and we'll find any gene sets with overlaps.</em>
+              <em>Search for sets that overlap any of the specified genes.</em>
             </p>
             <ul style="margin:0.25rem">
               <li><em>Ensembl or Entrez IDs or gene symbols are supported.</em></li>
-              <li><em>List one gene per line, any text after <code>#</code> will be ignored.</em></li>
+              <li><em>One gene should be provided per line, any text after <code>#</code> will be ignored.</em></li>
               <li><em>Sets will be ranked by the enrichment p-value in the output table.</em></li>
             </ul>
             <p style="margin:0.25rem">
@@ -102,7 +63,7 @@
           </div>
         </div>
       </div>
-      <div class="column", style="width:30%">
+      <div class="column">
         <div class="option-box">
           <span class="option-header">Search gene set names/descriptions</span>
           <div class="textarea-wrapper">
@@ -118,7 +79,7 @@
           </div>
         </div>
       </div>
-      <div class="column", style="width:30%">
+      <div class="column">
         <div class="option-box">
           <span class="option-header">Restrict gene set collections</span>
           <div id="collection-availability" class="input-boundbox">
@@ -134,17 +95,11 @@
       </div>
     </div>
 
-    <div class="row">
-      <div class="search-wrapper">
-        <button id="search" onclick="performSearch()" class="search-button">Search for gene sets</button>
-      </div>
+    <div class="search-wrapper">
+      <button id="search" onclick="performSearch()" class="search-button">SEARCH</button>
     </div>
   
-    <div class="row">
-      <div id="tab"></div>
-    </div>
-    <div class="row">
-      <div id="pages" style="display: flex; justify-content: center; padding-top: 2rem"></div>
-    </div>
+    <div id="tab"></div>
+    <div id="pages" style="display: flex; justify-content: center; padding-top: 2rem"></div>
   </body>
 </html>

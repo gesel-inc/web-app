@@ -49,24 +49,19 @@ const precomputed = { "species": null, "genes": null, "raw_genes": null, "result
 
 /*****************************************************/
 
-function getSpecies() {
-    const all_species = document.getElementById("species-list").childNodes;
-    for (const node of all_species) {
-        if (node.nodeName == "INPUT" && node.getAttribute("name") == "species" && node.checked) {
-            return node.getAttribute("value");
-        }
+async function setSpecies(chosen_species) {
+    if (precomputed.species == chosen_species) {
+        return;
     }
-    return null;
-}
 
-function setSpecies(species) {
-    const previous = precomputed.species;
-    precomputed.species = species;
-    return previous;
-}
+    const button = document.getElementById("search");
+    const is_disabled = button.getAttribute("disabled");
+    let old_html = button.innerHTML;
+    if (!is_disabled) {
+        button.innerHTML = "Retrieving collections <span class=\"loader\" d></span>";
+        button.setAttribute("disabled", true);
+    }
 
-async function updateCollections() {
-    const chosen_species = precomputed.species;
     const all_collections = await gesel.fetchAllCollections(chosen_species, config);
 
     let collection_elements = [];
@@ -90,17 +85,22 @@ async function updateCollections() {
 
     const coldiv = document.getElementById("collection-availability");
     coldiv.replaceChildren(...collection_elements);
-    precomputed.species = chosen_species;
 
-    return true;
+    // Also sanitizing the genes, if anything was there.
+    await sanitizeGenes();
+
+    precomputed.species = chosen_species;
+    if (!is_disabled) {
+        button.innerHTML = old_html;
+        button.removeAttribute("disabled");
+    }
+
+    return false;
 }
 
-setSpecies(getSpecies());
-updateCollections();
+setSpecies("9606");
 
-window.getSpecies = getSpecies;
 window.setSpecies = setSpecies;
-window.updateCollections = updateCollections;
 
 /*****************************************************/
 
