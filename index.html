@@ -14,15 +14,6 @@
 
   <body>
     <script type="module" src="./index.js"></script>
-    <script type="module">
-    addEventListener("change", async ev => {
-        if (ev.target.name.startsWith("gene-id-choice-") && ev.target.type == "radio") {
-            const index = ev.target.id.replace("gene-id-choice-", "").replace(/-.*/, "");
-            await populateGeneLists(Number(index));
-        }
-    });
-    </script>
-
     <h1>Bioconductor gene set search</h1>
 
     <div id="species-input">
@@ -102,6 +93,7 @@
     <hr/>
   
     <div id="tab"></div>
-    <div id="pages" style="display: flex; justify-content: center; padding-top: 2rem"></div>
+    <div id="summary" class="footer" style="padding-top: 2rem"></div>
+    <div id="pages" class="footer" style="padding:0.5rem"></div>
   </body>
 </html>
