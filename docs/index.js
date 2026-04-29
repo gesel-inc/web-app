@@ -179,14 +179,14 @@ async function sanitizeGenes() {
     const button = document.getElementById("validate-genes");
     const is_disabled = button.getAttribute("disabled");
     if (!is_disabled) {
-        button.innerHTML = "here <span class=\"loader\" d></span>";
+        button.innerHTML = "<em>Validating</em> <span class=\"loader\" d></span>";
         button.setAttribute("disabled", true);
     }
 
     await sanitizeGenesRaw();
 
     if (!is_disabled) {
-        button.innerHTML = "here";
+        button.innerHTML = "<em>Validate genes here!</em>";
         button.removeAttribute("disabled");
     }
 
@@ -212,7 +212,16 @@ async function formatTable(species, results, start, end) {
     for (var c = 0; c < colnames.length; c++) {
         const element = document.createElement("th");
         element.textContent = colnames[c];
-        element.setAttribute("style", "width: " + String(colwidths[c]) + "%");
+    
+        let style = "width: " + String(colwidths[c]) + "%; ";
+        if (colnames[c] == "Name") {
+            style += "border-radius: 0.25rem 0rem 0rem 0rem";
+        }
+        if (colnames[c] == "p-value") {
+            style += "border-radius: 0rem 0.25rem 0rem 0rem";
+        }
+        element.setAttribute("style", style);
+
         if (colnames[c] != "") {
             element.setAttribute("class", "result-header");
         }
@@ -360,15 +369,15 @@ function createPageLinks(num_results, current_page, page_size) {
     for (var i = 0; i < pages_list.length; i++) {
         if (pages_list[i] == null) {
             pages_list[i] = "...";
-        } else if (pages_list[i] === current_page) {
-            const current = document.createElement("button");
-            current.textContent = String(pages_list[i] + 1);
-            current.setAttribute("disabled", true);
-            pages_list[i] = current;
         } else {
             const current = document.createElement("button");
             current.textContent = String(pages_list[i] + 1);
-            current.setAttribute("onclick", "updatePage(" + String(pages_list[i]) + ");");
+            current.setAttribute("class", "pages-button");
+            if (pages_list[i] === current_page) {
+                current.setAttribute("disabled", true);
+            } else {
+                current.setAttribute("onclick", "updatePage(" + String(pages_list[i]) + ");");
+            }
             pages_list[i] = current;
         }
     }
@@ -484,6 +493,7 @@ async function showGeneSetDetails(index) {
     row.id = expanded_id;
     const entry = document.createElement("td");
     entry.setAttribute("colspan", 7);
+    entry.setAttribute("class", "result-expanded");
 
     const species = precomputed.species;
     const res = precomputed.results[index];
@@ -496,7 +506,7 @@ async function showGeneSetDetails(index) {
     entry.appendChild((function() {
         const pp = document.createElement("p");
         const st = document.createElement("strong");
-        st.textContent = "Collection description:";
+        st.textContent = "Collection description: ";
         pp.appendChild(st);
         pp.appendChild(document.createTextNode(curcolle.description));
         return pp;
@@ -505,7 +515,7 @@ async function showGeneSetDetails(index) {
     entry.appendChild((function() {
         const pp = document.createElement("p");
         const st = document.createElement("strong");
-        st.textContent = "Collection contributor:";
+        st.textContent = "Collection contributor: ";
         pp.appendChild(st);
         pp.appendChild(document.createTextNode(curcolle.maintainer));
         return pp;
@@ -514,7 +524,7 @@ async function showGeneSetDetails(index) {
     entry.appendChild((function() {
         const pp = document.createElement("p");
         const st = document.createElement("strong");
-        st.textContent = "Collection source:";
+        st.textContent = "Collection source: ";
         pp.appendChild(st);
         pp.appendChild(document.createTextNode(curcolle.source));
         return pp;
@@ -540,7 +550,9 @@ async function showGeneSetDetails(index) {
     const choice_id = "gene-id-choice-" + String(index);
     const wrapper = document.createElement("div");
     wrapper.id = choice_id;
-    wrapper.appendChild(document.createTextNode("Gene identifier type: "));
+    const st = document.createElement("strong");
+    st.textContent = "Gene identifier type: ";
+    wrapper.appendChild(st);
 
     for (const types of [["symbol", "symbol"], ["ensembl", "Ensembl"], ["entrez", "Entrez"]]) {
         const cur_choice_id = choice_id + "-" + types[0];
@@ -602,7 +614,7 @@ async function populate_gene_lists(species, type, overlapping_node, overlapping_
         }
 
         const st = document.createElement("strong");
-        st.textContent = "Overlapping genes:";
+        st.textContent = "Overlapping genes: ";
         overlapping_node.replaceChildren(st, document.createTextNode(accumulated.join(", ")));
     }
 
@@ -618,7 +630,7 @@ async function populate_gene_lists(species, type, overlapping_node, overlapping_
         }
 
         const st = document.createElement("strong");
-        st.textContent = "Other genes:";
+        st.textContent = "Other genes: ";
         other_node.replaceChildren(st, document.createTextNode(accumulated.join(", ")));
     }
 }
