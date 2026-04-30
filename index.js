@@ -215,38 +215,12 @@ window.sanitizeGenes = sanitizeGenes;
 const pageSize = 50;
 
 async function formatTable(species, results, start, end) {
-    const tab = document.createElement("table");
-    tab.setAttribute("class", "result-table");
     const actual_start = Math.min(start, results.length);
     const actual_end = Math.min(end, results.length);
-
-    const thead = document.createElement("thead");
-    const header = document.createElement("tr");
-    const colnames = ["Name", "Description", "Collection", "Size", "Overlap", "p-value"];
-    const colwidths = [ 20, 30, 20, 5, 5, 10, 10 ];
-    for (var c = 0; c < colnames.length; c++) {
-        const element = document.createElement("th");
-        element.textContent = colnames[c];
-    
-        let style = "width: " + String(colwidths[c]) + "%; ";
-        if (colnames[c] == "Name") {
-            style += "border-radius: 0.25rem 0rem 0rem 0rem";
-        }
-        if (colnames[c] == "p-value") {
-            style += "border-radius: 0rem 0.25rem 0rem 0rem";
-        }
-        element.setAttribute("style", style);
-
-        header.appendChild(element);
-    }
-
-    thead.appendChild(header);
-    tab.appendChild(thead);
-
     const sinfo = await gesel.fetchAllSets(species, config);
     const cinfo = await gesel.fetchAllCollections(species, config);
 
-    const tbody = document.createElement("tbody");
+    const collected = [];
     for (var i = actual_start; i < actual_end; i++) {
         const currow = document.createElement("tr");
         currow.id = "result-row-" + String(i);
@@ -316,15 +290,14 @@ async function formatTable(species, results, start, end) {
             })());
         }
 
-        tbody.appendChild(currow);
+        collected.push(currow);
     }
 
-    tab.appendChild(tbody);
-    document.getElementById("tab").replaceChildren(tab);
+    document.getElementById("tabbody").replaceChildren(...collected);
 }
 
-function createPageLinks(num_results, current_page, page_size) {
-    let num_pages = Math.ceil(num_results / page_size);
+function createPageLinks(num_results, current_page) {
+    let num_pages = Math.ceil(num_results / pageSize);
 
     const maxgap = 3;
     const to_show = new Set;
@@ -390,9 +363,9 @@ function createPageLinks(num_results, current_page, page_size) {
     document.getElementById("pages").replaceChildren(ptitle, ...pages_list);
 }
 
-function createSummary(num_results, current_page, page_size) {
-    const start = Math.min(current_page * page_size + 1, num_results);
-    const end = Math.min((current_page + 1) + page_size, num_results);
+function createSummary(num_results, current_page) {
+    const start = Math.min(current_page * pageSize + 1, num_results);
+    const end = Math.min((current_page + 1) * pageSize, num_results);
     const info = document.createTextNode("Currently showing results " + String(start) + " to " + String(end) + " out of " + String(num_results) + " total"); 
     document.getElementById("summary").replaceChildren(info);
 }
@@ -460,8 +433,8 @@ async function performSearch() {
     }
 
     formatTable(species, res, 0, pageSize);
-    createPageLinks(res.length, 0, pageSize);
-    createSummary(res.length, 0, pageSize);
+    createPageLinks(res.length, 0);
+    createSummary(res.length, 0);
     precomputed.results = res;
     precomputed.page = 0;
 
@@ -477,11 +450,14 @@ async function updatePage(new_page) {
     const species = precomputed.species;
     const res = precomputed.results;
     await formatTable(species, res, pageSize * new_page, pageSize * (new_page + 1));
-    createPageLinks(res.length, new_page, pageSize);
-    createSummary(res.length, new_page, pageSize);
+    createPageLinks(res.length, new_page);
+    createSummary(res.length, new_page);
     precomputed.page = new_page;
     return false;
 }
+
+createPageLinks(0, 0);
+createSummary(0, 0);
 
 window.performSearch = performSearch;
 window.updatePage = updatePage;
@@ -502,16 +478,22 @@ async function toggleGeneSetDetails(index) {
     // Putting together a temporary object.
     expanded = document.createElement("tr");
     expanded.id = expanded_id;
+    const td = document.createElement("td");
+    td.setAttribute("colspan", 6);
+    td.setAttribute("class", "result-row-expanded");
+    if (index % 2 != 0) {
+        td.setAttribute("style", "background-color:whitesmoke");
+    }
 
-    const tmp = document.createElement("td");
-    tmp.setAttribute("colspan", 6);
-    tmp.setAttribute("class", "result-expanded");
-    tmp.innerHTML = "<div style=\"display:flex; justify-content:center\"><p>Fetching <span class=\"loader\"></span></p></div>";
-    expanded.replaceChildren(tmp);
+    const tmp = document.createElement("div");
+    tmp.setAttribute("class", "result-expanded tmp-expanded");
+    tmp.innerHTML = "<p>Fetching <span class=\"loader\"></span></p>";
+    td.replaceChildren(tmp);
+
+    expanded.replaceChildren(td);
     document.getElementById("result-row-" + String(index)).after(expanded);
 
-    const entry = document.createElement("td");
-    entry.setAttribute("colspan", 6);
+    const entry = document.createElement("div");
     entry.setAttribute("class", "result-expanded");
 
     const species = precomputed.species;
@@ -596,7 +578,7 @@ async function toggleGeneSetDetails(index) {
 
     await populate_gene_lists(species, "symbol", inside_pp, inside, outside_pp, outside);
     entry.appendChild(wrapper);
-    expanded.replaceChildren(entry);
+    td.replaceChildren(entry);
     return false;
 } 
 

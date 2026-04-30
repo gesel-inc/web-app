@@ -92,8 +92,24 @@
 
     <hr/>
   
-    <div id="tab"></div>
-    <div id="summary" class="footer" style="padding-top: 2rem"></div>
+    <div style="padding:12px 15px">
+      <table class="result-table">
+        <thead>
+          <tr>
+            <th class="result-header-cell" style="width: 25%">Name</th>
+            <th class="result-header-cell" style="width: 35%">Description</th>
+            <th class="result-header-cell" style="width: 25%">Collection</th>
+            <th class="result-header-cell" style="width: 5%">Size</th>
+            <th class="result-header-cell" style="width: 5%">Overlap</th>
+            <th class="result-header-cell" style="width: 5%"><em>p</em>-value</th>
+          </tr>
+        </thead>
+        <tbody id="tabbody">
+        </tbody>
+      </table>
+    </div>
+
+    <div id="summary" class="footer"></div>
     <div id="pages" class="footer" style="padding:0.5rem"></div>
   </body>
 </html>
